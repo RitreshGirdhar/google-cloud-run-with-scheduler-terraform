@@ -13,7 +13,7 @@ resource "google_cloud_run_service" "default" {
   template {
     spec {
       containers {
-        image = "gcr.io/cloudrun/hello"
+        image = "gcr.io/api-project-808184727589/ms1"
       }
     }
   }
