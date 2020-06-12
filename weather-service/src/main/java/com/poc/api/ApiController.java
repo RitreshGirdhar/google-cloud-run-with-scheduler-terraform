@@ -29,4 +29,23 @@ public class ApiController {
 	public String test1() {
 		return "message1";
 	}
+
+	@Autowired
+	private WeatherService weatherService;
+
+	@GetMapping("/schedule2")
+	public String schedule() throws InterruptedException {
+		weatherService.sleep();
+		return "schedule 2";
+	}
+
+	@GetMapping("/auto")
+	public String auto() throws InterruptedException {
+		return "auto";
+	}
+
+	@GetMapping("/auto1")
+	public String auto1() throws InterruptedException {
+		return "auto1";
+	}
 }
