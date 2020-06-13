@@ -66,4 +66,3 @@ terraform init
 ```
 terraform apply
 ```
-
