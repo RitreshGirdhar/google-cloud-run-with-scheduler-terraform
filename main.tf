@@ -6,14 +6,14 @@ provider "google" {
   zone    = "us-east4-c"
 }
 
-resource "google_cloud_run_service" "weather-service" {
-  name     = "weather-service"
+resource "google_cloud_run_service" "report-generator-service" {
+  name     = "report-generator-service"
   location = "us-east4"
 
   template {
     spec {
       containers {
-        image = "gcr.io/loblaw-280320/ms1"
+        image = "gcr.io/loblaw-280320/report-generator-service"
       }
     }
   }
@@ -25,24 +25,8 @@ resource "google_cloud_run_service" "weather-service" {
 }
 
 output "url" {
-  value = "${google_cloud_run_service.weather-service.status[0].url}"
+  value = "${google_cloud_run_service.report-generator-service.status[0].url}"
 }
-
-//data "google_iam_policy" "noauth" {
-//  binding {
-//    role = "roles/run.invoker"
-//    members = [
-//      "allUsers",
-//    ]
-//  }
-//}
-//
-//resource "google_cloud_run_service_iam_policy" "policy" {
-//  location    = google_cloud_run_service.weather-service.location
-//  project     = google_cloud_run_service.weather-service.project
-//  service     = google_cloud_run_service.weather-service.name
-//  policy_data = data.google_iam_policy.noauth.policy_data
-//}
 
 data "google_compute_default_service_account" "default" {
 }
@@ -56,7 +40,7 @@ resource "google_cloud_scheduler_job" "updater" {
 
   http_target {
     http_method = "GET"
-      uri = "${google_cloud_run_service.weather-service.status[0].url}/v1/weather/hello1"
+      uri = "${google_cloud_run_service.report-generator-service.status[0].url}/v1/weather/hello1"
 
     oidc_token {
       service_account_email = "terraform@loblaw-280320.iam.gserviceaccount.com"
