@@ -94,7 +94,6 @@ resource "google_cloud_scheduler_job" "updater" {
 }
 ````
 
-
 #### Initialize 
 ```
 $ terraform init
@@ -295,16 +294,4 @@ url = https://report-generator-service-bmgsrd6uza-uk.a.run.app
 #### Destroy 
 ```
 terraform destroy
-```
-
-
-
-gcloud iam service-accounts list
-NAME       EMAIL                                                       DISABLED
-terraform  terraform@api-project-808184727589.iam.gserviceaccount.com  False
-```
-
-```
-WKMIN1307242:terraform-gcp-scheduler-cloudrun ritgirdh$ gcloud auth activate-service-account terraform@api-project-808184727589.iam.gserviceaccount.com --key-file=./api-project-808184727589-de8a32ba6bc5.json
-Activated service account credentials for: [terraform@api-project-808184727589.iam.gserviceaccount.com]
 ```
