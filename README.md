@@ -296,8 +296,9 @@ url = https://report-generator-service-bmgsrd6uza-uk.a.run.app
 terraform destroy
 ```
 
-Invoke Cloud Run api via postman. 
-We have configured Open ID Connect between scheduler and cloud run communication. But for testing you could directly trigger the job endpoint 
+### How to invoke Cloud Run api via postman
+We have configured Open ID Connect for securly accessing cloud run api via scheduler. But sometime we need to invoke cloud run api for debugging purpose 
+for that you should have token. 
 
 #### Activate Service account
 ```
