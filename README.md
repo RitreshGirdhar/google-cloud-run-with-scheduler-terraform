@@ -295,3 +295,82 @@ url = https://report-generator-service-bmgsrd6uza-uk.a.run.app
 ```
 terraform destroy
 ```
+
+Invoke Cloud Run api via postman. 
+We have configured Open ID Connect between scheduler and cloud run communication. But for testing you could directly trigger the job endpoint 
+
+#### Activate Service account
+```
+$ gcloud auth activate-service-account --key-file=key.json
+Activated service account credentials for: [service-account]
+```
+#### Print Token 
+```
+$ gcloud auth print-identity-token --audiences=https://test-bmgsrd6uza-uc.a.run.app
+eyJhbGciOiJSUzI1NiIsImtpZCI6ImIxNm........
+```
+
+#### Invoke api with token
+```
+$ curl -ivk --location --request GET 'https://test-bmgsrd6uza-uc.a.run.app/v1/weather/hello1' \
+--header 'Authorization: Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6ImIxNm.....'
+
+*   Trying 216.239.36.53...
+* TCP_NODELAY set
+* Connected to test-bmgsrd6uza-uc.a.run.app (216.239.36.53) port 443 (#0)
+* ALPN, offering h2
+* ALPN, offering http/1.1
+* Cipher selection: ALL:!EXPORT:!EXPORT40:!EXPORT56:!aNULL:!LOW:!RC4:@STRENGTH
+* successfully set certificate verify locations:
+*   CAfile: /etc/ssl/cert.pem
+  CApath: none
+* TLSv1.2 (OUT), TLS handshake, Client hello (1):
+* TLSv1.2 (IN), TLS handshake, Server hello (2):
+* TLSv1.2 (IN), TLS handshake, Certificate (11):
+* TLSv1.2 (IN), TLS handshake, Server key exchange (12):
+* TLSv1.2 (IN), TLS handshake, Server finished (14):
+* TLSv1.2 (OUT), TLS handshake, Client key exchange (16):
+* TLSv1.2 (OUT), TLS change cipher, Client hello (1):
+* TLSv1.2 (OUT), TLS handshake, Finished (20):
+* TLSv1.2 (IN), TLS change cipher, Client hello (1):
+* TLSv1.2 (IN), TLS handshake, Finished (20):
+* SSL connection using TLSv1.2 / ECDHE-ECDSA-CHACHA20-POLY1305
+* ALPN, server accepted to use h2
+* Server certificate:
+*  subject: C=US; ST=California; L=Mountain View; O=Google LLC; CN=*.a.run.app
+*  start date: May 26 15:20:56 2020 GMT
+*  expire date: Aug 18 15:20:56 2020 GMT
+*  issuer: C=US; O=Google Trust Services; CN=GTS CA 1O1
+*  SSL certificate verify ok.
+* Using HTTP2, server supports multi-use
+* Connection state changed (HTTP/2 confirmed)
+* Copying HTTP/2 data in stream buffer to connection buffer after upgrade: len=0
+* Using Stream ID: 1 (easy handle 0x7feac4808c00)
+> GET /v1/weather/hello1 HTTP/2
+> Host: test-bmgsrd6uza-uc.a.run.app
+> User-Agent: curl/7.54.0
+> Accept: */*
+> Authorization: Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6ImIxNm......
+> 
+* Connection state changed (MAX_CONCURRENT_STREAMS updated)!
+< HTTP/2 200 
+HTTP/2 200 
+< content-type: text/plain;charset=UTF-8
+content-type: text/plain;charset=UTF-8
+< date: Tue, 16 Jun 2020 06:30:58 GMT
+date: Tue, 16 Jun 2020 06:30:58 GMT
+< server: Google Frontend
+server: Google Frontend
+< content-length: 8
+content-length: 8
+< alt-svc: h3-27=":443"; ma=2592000,h3-25=":443"; ma=2592000,h3-T050=":443"; ma=2592000,h3-Q050=":443"; ma=2592000,h3-Q049=":443"; ma=2592000,h3-Q048=":443"; ma=2592000,h3-Q046=":443"; ma=2592000,h3-Q043=":443"; ma=2592000,quic=":443"; ma=2592000; v="46,43"
+alt-svc: h3-27=":443"; ma=2592000,h3-25=":443"; ma=2592000,h3-T050=":443"; ma=2592000,h3-Q050=":443"; ma=2592000,h3-Q049=":443"; ma=2592000,h3-Q048=":443"; ma=2592000,h3-Q046=":443"; ma=2592000,h3-Q043=":443"; ma=2592000,quic=":443"; ma=2592000; v="46,43"
+
+< 
+* Connection #0 to host test-bmgsrd6uza-uc.a.run.app left intact
+message1
+```
+
+
+
+
