@@ -1,4 +1,4 @@
-# Google cloud + Google scheduler - set up via Terraform
+# Google Cloud Run + Google scheduler - set up via Terraform
 
 This application will help you in creating google cloud service which will be invoke by google cloud scheduler. Will set up both services via terraform. 
 
