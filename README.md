@@ -7,11 +7,12 @@ While designing applications (specially microservices based) we got into the sit
 do some kind of cleaning jobs based on specific schedules. 
 
 To handle such problems developers either create scheduling jobs in some of the microservice or create new module. 
-Prefer later one where they could keep adding utilities based on the business domain. In one of my previous project we called it backoffice processor, which used to process some of the operation on 
-specific time it could be related to business or could be not. 
+I prefer later one where they could keep adding utilities based on the business bounded context. 
 
-For ex: Send customer notifications between 9 am only , data push to start pushing data.
-Check some of the best suitable use-casess here. https://cloud.google.com/run#section-10
+In one of my previous project we called it backoffice processor, which used to process some of the operation on 
+specific time it could be related to any part of business like in telecom - generate reconcilation report, generate Pre-paid customer daily usage stats. In e-commerce, generate daily applied coupon or generate failed payments list and so on so. 
+
+For ex: Send customer notifications after 9 am only. Check some of the best suitable use-casess here. https://cloud.google.com/run#section-10
 
 Here we will set up Cloud Run and scheduler via Terraform. Scheduler will invoke jobs running on cloud run via making secure http call. From security point of view we will enable 
 OIDC token 
