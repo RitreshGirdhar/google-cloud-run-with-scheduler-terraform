@@ -16,51 +16,96 @@ Check some of the best suitable use-casess here. https://cloud.google.com/run#se
 Here we will set up Cloud Run and scheduler via Terraform. Scheduler will invoke jobs running on cloud run via making secure http call. From security point of view we will enable 
 OIDC token 
 
-![enable cloud run api](images/enable-cloud-run-api.png)
+### Create Project
+![Create project](images/create-project.png)
+
+![Project created](images/project-created.png)
+
+### Create Service account 
+
+![Project created](images/sa-1.png)
+![Project created](images/sa-2.png)
+![Project created](images/sa-3.png)
+![Project created](images/sa-4.png)
+![Project created](images/sa-5.png)
+
+### Enable Container registry
+![Project created](images/enable-container-registry.png)
 
 ### Let's build microservice image
 
 ```
 $ mvn clean install -f report-generator-service/pom.xml
 ```
-#### Create tag image
+#### Create tag
 ```
-$ docker tag sample-microservice/report-generator-service gcr.io/loblaw-280320-9e0236ac2d5c/report-generator-service
+$ docker tag demo/report-generator-service:latest gcr.io/charged-library-280615/report-generator-service:latest
 ```
 
 ### Login to google container registry Tag
 ```
-$ docker login -u _json_key -p "$(cat ./loblaw-280320-9e0236ac2d5c.json)" https://gcr.io
+$ docker login -u _json_key -p "$(cat ./charged-library-280615-9fa9b79158d5.json)" https://gcr.io
 WARNING! Using --password via the CLI is insecure. Use --password-stdin.
 Login Succeeded
-$ docker push gcr.io/loblaw-280320/report-generator-service:latest
-
-
-
 ```
 ### Push docker image
 ```
-$ docker push gcr.io/loblaw-280320/report-generator-service:latest
-The push refers to repository [gcr.io/loblaw-280320/ms1]
-18872ac8915d: Pushed 
-ceaf9e1ebef5: Pushed 
+$ docker push gcr.io/charged-library-280615/report-generator-service:latest 
+The push refers to repository [gcr.io/charged-library-280615/report-generator-service]
+035c61f5476b: Preparing 
+ceaf9e1ebef5: Preparing 
+9b9b7f3d56a0: Preparing 
+f1b5933fe4b5: Preparing 
+denied: Token exchange failed for project 'charged-library-280615'. Caller does not have permission 'storage.buckets.create'. To configure permissions, follow instructions at: https://cloud.google.com/container-registry/docs/access-control
+```
+
+### Enable Cloud storage
+![Project created](images/enable-cloud-storage.png)
+
+### Create bucket
+![Project created](images/bucket-1.png)
+![Project created](images/bucket-2.png)
+![Project created](images/bucket-3.png)
+![Project created](images/bucket-4.png)
+![Project created](images/bucket-5.png)
+![Project created](images/bucket-6.png)
+
+### Define permision to access bucket
+![Project created](images/Update-cloud-storage-permission.png)
+
+### Again Push docker image
+```
+$ docker push gcr.io/charged-library-280615/report-generator-service
+The push refers to repository [gcr.io/charged-library-280615/report-generator-service]
+035c61f5476b: Pushed 
+ceaf9e1ebef5: Layer already exists 
 9b9b7f3d56a0: Layer already exists 
 f1b5933fe4b5: Layer already exists 
-latest: digest: sha256:42d95b4872c1ddb8bd5b8a44ddf8d79f989915b4a1bec7aecbdfd893c6329630 size: 1159
+latest: digest: sha256:2773451b3cc1fdeba04a9cdb512d474a289fe73745ace1e6949e772a86a0926b size: 1159
+WKMIN1307242:Downloads ritgirdh$ docker push gcr.io/charged-library-280615/report-generator-service:latest
+The push refers to repository [gcr.io/charged-library-280615/report-generator-service]
+035c61f5476b: Layer already exists 
+ceaf9e1ebef5: Layer already exists 
+9b9b7f3d56a0: Layer already exists 
+f1b5933fe4b5: Layer already exists 
+latest: digest: sha256:2773451b3cc1fdeba04a9cdb512d474a289fe73745ace1e6949e772a86a0926b size: 1159
 ```
 
-## Understand Terraform resource
+## Google Cloud Run Set up
 
-### Cloud Run  
+### Enable Cloud Run Service 
+![enable cloud run api](images/enable-cloud-run.png)
+
+### Understand Cloud Run - terraform resource   
 ```
-resource "google_cloud_run_service" "weather-service" {
+resource "google_cloud_run_service" "report-generator-service" {
   name     = "report-generator-service"
   location = "us-east4"
 
   template {
     spec {
       containers {
-        image = "gcr.io/loblaw-280320/report-generator-service"
+        image = "gcr.io/charged-library-280615/report-generator-service"
       }
     }
   }
@@ -75,20 +120,20 @@ resource "google_cloud_run_service" "weather-service" {
 It will create cloud run service report-generator-service , running container will start serving 100% traffic. In case of updation or deployment, previous running 
 instance will serve running threads and new up instance will start handling all 100% traffic. We could also manage traffic if require. 
 
-### Create Scheduler job 
+### Understand Google Scheduler job - terraform resource 
 ````
 resource "google_cloud_scheduler_job" "updater" {
-  name             = "test-updater"
-  description      = "test-updater"
-  schedule         = "*/1 * * * *"
+  name             = "daily-report-generation-job"
+  description      = "It will generate daily report"
+  schedule         = "0 0 18 ? * * *"
   time_zone        = "GMT"
 
   http_target {
     http_method = "GET"
-      uri = "${google_cloud_run_service.weather-service.status[0].url}/v1/weather/hello1"
+      uri = "${google_cloud_run_service.report-generator-service.status[0].url}/v1/weather/hello1"
 
     oidc_token {
-      service_account_email = "terraform@loblaw-280320.iam.gserviceaccount.com"
+      service_account_email = "terraform@charged-library-280615.iam.gserviceaccount.com"
     }
   }
 }
@@ -113,16 +158,23 @@ commands will detect it and remind you to do so if necessary.
 
 ```
 
+### Enable below api's 
+![enable compute engine](images/enable-compute-engine.png)
+![enable compute engine](images/compute-engine-1.png)
+![enable compute engine](images/enable-iam-api.png)
+![enable compute engine](images/iam-api.png)
+![enable cloud scheduler](images/cloud-scheduler-1.png)
+![enable cloud scheduler](images/cloud-scheduler-2.png)
+
 #### Apply changes.
-```
-ritgirdh$ terraform apply
+```        
+$ terraform apply
 data.google_compute_default_service_account.default: Refreshing state...
-google_cloud_run_service.weather-service: Refreshing state... [id=locations/us-east4/namespaces/loblaw-280320/services/report-generator-service]
+google_cloud_run_service.report-generator-service: Refreshing state... [id=locations/us-east4/namespaces/charged-library-280615/services/report-generator-service]
 
 An execution plan has been generated and is shown below.
 Resource actions are indicated with the following symbols:
   + create
-  - destroy
 
 Terraform will perform the following actions:
 
@@ -150,7 +202,7 @@ Terraform will perform the following actions:
               + serving_state = (known after apply)
 
               + containers {
-                  + image = "gcr.io/loblaw-280320/report-generator-service"
+                  + image = "gcr.io/charged-library-280615/report-generator-service"
                 }
             }
         }
@@ -161,111 +213,27 @@ Terraform will perform the following actions:
         }
     }
 
-  # google_cloud_run_service.weather-service will be destroyed
-  - resource "google_cloud_run_service" "weather-service" {
-      - id       = "locations/us-east4/namespaces/loblaw-280320/services/report-generator-service" -> null
-      - location = "us-east4" -> null
-      - name     = "report-generator-service" -> null
-      - project  = "loblaw-280320" -> null
-      - status   = [
-          - {
-              - conditions                   = [
-                  - {
-                      - message = "Image 'gcr.io/loblaw-280320/gcr.io/loblaw-280320/report-generator-service' not found."
-                      - reason  = "ContainerMissing"
-                      - status  = "False"
-                      - type    = "Ready"
-                    },
-                  - {
-                      - message = "Image 'gcr.io/loblaw-280320/gcr.io/loblaw-280320/report-generator-service' not found."
-                      - reason  = "ContainerMissing"
-                      - status  = "False"
-                      - type    = "ConfigurationsReady"
-                    },
-                  - {
-                      - message = "Image 'gcr.io/loblaw-280320/gcr.io/loblaw-280320/report-generator-service' not found."
-                      - reason  = ""
-                      - status  = "Unknown"
-                      - type    = "RoutesReady"
-                    },
-                ]
-              - latest_created_revision_name = "report-generator-service-q75zs"
-              - latest_ready_revision_name   = ""
-              - observed_generation          = 1
-              - url                          = ""
-            },
-        ] -> null
-
-      - metadata {
-          - annotations      = {
-              - "serving.knative.dev/creator"      = "terraform@loblaw-280320.iam.gserviceaccount.com"
-              - "serving.knative.dev/lastModifier" = "terraform@loblaw-280320.iam.gserviceaccount.com"
-            } -> null
-          - generation       = 1 -> null
-          - labels           = {
-              - "cloud.googleapis.com/location" = "us-east4"
-            } -> null
-          - namespace        = "loblaw-280320" -> null
-          - resource_version = "AAWoJCrwjJA" -> null
-          - self_link        = "/apis/serving.knative.dev/v1/namespaces/51523235489/services/report-generator-service" -> null
-          - uid              = "202c7aa5-d61c-47bf-a1d7-52ab164c1265" -> null
-        }
-
-      - template {
-          - metadata {
-              - annotations = {
-                  - "autoscaling.knative.dev/maxScale" = "1000"
-                } -> null
-              - generation  = 0 -> null
-              - labels      = {} -> null
-            }
-
-          - spec {
-              - container_concurrency = 80 -> null
-
-              - containers {
-                  - args    = [] -> null
-                  - command = [] -> null
-                  - image   = "gcr.io/loblaw-280320/gcr.io/loblaw-280320/report-generator-service" -> null
-
-                  - resources {
-                      - limits   = {
-                          - "cpu"    = "1000m"
-                          - "memory" = "256Mi"
-                        } -> null
-                      - requests = {} -> null
-                    }
-                }
-            }
-        }
-
-      - traffic {
-          - latest_revision = true -> null
-          - percent         = 100 -> null
-        }
-    }
-
   # google_cloud_scheduler_job.updater will be created
   + resource "google_cloud_scheduler_job" "updater" {
-      + description = "test-updater"
+      + description = "It will generate daily report"
       + id          = (known after apply)
-      + name        = "test-updater"
+      + name        = "daily-report-generation-job"
       + project     = (known after apply)
       + region      = (known after apply)
-      + schedule    = "*/1 * * * *"
+      + schedule    = "* 18 * * *"
       + time_zone   = "GMT"
 
       + http_target {
           + http_method = "GET"
-          + uri         = (known after apply)
+          + uri         = "https://report-generator-service-zrjjlwqnjq-uk.a.run.app/v1/weather/hello1"
 
           + oidc_token {
-              + service_account_email = "terraform@loblaw-280320.iam.gserviceaccount.com"
+              + service_account_email = "terraform@charged-library-280615.iam.gserviceaccount.com"
             }
         }
     }
 
-Plan: 2 to add, 0 to change, 1 to destroy.
+Plan: 1 to add, 0 to change, 0 to destroy.
 
 Do you want to perform these actions?
   Terraform will perform the actions described above.
@@ -273,30 +241,33 @@ Do you want to perform these actions?
 
   Enter a value: yes
 
-google_cloud_run_service.weather-service: Destroying... [id=locations/us-east4/namespaces/loblaw-280320/services/report-generator-service]
 google_cloud_run_service.report-generator-service: Creating...
-google_cloud_run_service.weather-service: Destruction complete after 2s
 google_cloud_run_service.report-generator-service: Still creating... [10s elapsed]
 google_cloud_run_service.report-generator-service: Still creating... [20s elapsed]
 google_cloud_run_service.report-generator-service: Still creating... [30s elapsed]
-google_cloud_run_service.report-generator-service: Creation complete after 35s [id=locations/us-east4/namespaces/loblaw-280320/services/report-generator-service]
+google_cloud_run_service.report-generator-service: Still creating... [40s elapsed]
+google_cloud_run_service.report-generator-service: Creation complete after 49s [id=locations/us-east4/namespaces/charged-library-280615/services/report-generator-service]
 google_cloud_scheduler_job.updater: Creating...
-google_cloud_scheduler_job.updater: Creation complete after 5s [id=projects/loblaw-280320/locations/us-east4/jobs/test-updater]
+google_cloud_scheduler_job.updater: Creation complete after 6s [id=projects/charged-library-280615/locations/us-east4/jobs/daily-report-generation-job]
 
-Apply complete! Resources: 2 added, 0 changed, 1 destroyed.
+Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
 
 Outputs:
 
-url = https://report-generator-service-bmgsrd6uza-uk.a.run.app
- 
+url = https://report-generator-service-zrjjlwqnjq-uk.a.run.app
 ```
 
-#### Destroy 
+### Check Cloud run service and scheduler 
+![cloud-run-created](images/cloud-run-created.png)
+![scheduler-created](images/scheduler-created.png)
+
+### Delete Cloud run service + Scheduler job 
 ```
 terraform destroy
 ```
 
-### How to invoke Cloud Run api via postman
+
+## How to invoke Cloud Run api via postman ?
 We have configured Open ID Connect for securly accessing cloud run api via scheduler. But sometime we need to invoke cloud run api for debugging purpose 
 for that you should have token. 
 
@@ -371,7 +342,3 @@ alt-svc: h3-27=":443"; ma=2592000,h3-25=":443"; ma=2592000,h3-T050=":443"; ma=25
 * Connection #0 to host test-bmgsrd6uza-uc.a.run.app left intact
 message1
 ```
-
-
-
-
