@@ -1,6 +1,6 @@
-# Terraform gcp scheduler cloudrun
+# Google cloud + Google scheduler - set up via Terraform
 
-This application will help you in creating gcp cloud run service via terraform. 
+This application will help you in creating google cloud service which will be invoke by google cloud scheduler. Will set up both services via terraform. 
 
 ### Why to choose - Cloud run for scheduling jobs ? 
 While designing applications (specially microservices based) we got into the situation to create some back-office kind utility which 
